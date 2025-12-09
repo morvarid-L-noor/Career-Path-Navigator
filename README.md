@@ -19,20 +19,6 @@ This repository contains the design for how Thrive's Career Path Navigator featu
 - **`config/ab_test_config.json`**: A/B testing configuration and routing strategy
 - **`config/rate_limits.json`**: Rate limiting and budget constraints
 
-### Prompt Versioning System (Part 2)
-- **`config/features/career_path_navigator.json`**: Main feature configuration with prompt versioning
-- **`config/prompt_versioning_strategy.md`**: Detailed explanation of versioning strategy and rollback process
-- **`config/schema/feature_config_schema.json`**: JSON schema for configuration validation
-- **`PROMPT_VERSIONING_SUMMARY.md`**: Quick reference guide for the prompt versioning system
-
-### Monitoring Implementation (Part 3)
-- **`llm_monitoring/`**: Complete Python proof-of-concept for monitoring
-  - `monitor.py`: Main monitoring wrapper with telemetry logging
-  - `providers.py`: Mock LLM providers (OpenAI, Anthropic)
-  - `circuit_breaker.py`: Failover logic implementation
-  - `metrics.py`: Metrics collection and aggregation
-  - `demo.py`: Working demonstration script
-- **`MONITORING_IMPLEMENTATION_SUMMARY.md`**: Summary of monitoring features
 
 ## How It Works - Main Parts
 
@@ -51,18 +37,6 @@ This repository contains the design for how Thrive's Career Path Navigator featu
 - **Automatic Backup**: If one AI fails, we automatically use another - prevents total outages
 - **Smart Memory**: Remembers answers to save money and speed up responses
 - **Comprehensive Monitoring**: Always know what's happening - helps fix problems quickly
-
-## Viewing the Architecture
-
-### Option 1: Mermaid Diagram (Recommended)
-Open `architecture_design.md` in any Markdown viewer that supports Mermaid (GitHub, VS Code with Mermaid extension, etc.)
-
-### Option 2: ASCII Diagram
-Open `architecture_diagram_ascii.txt` in any text editor for a visual representation
-
-### Option 3: Online Tools
-- Copy the Mermaid diagram from `architecture_design.md` and paste into [Mermaid Live Editor](https://mermaid.live)
-- Use [draw.io](https://app.diagrams.net/) or [Excalidraw](https://excalidraw.com/) to create a visual diagram based on the design
 
 ## Settings Files
 
