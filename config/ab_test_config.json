@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "split": {
+    "openai": 0.5,
+    "anthropic": 0.5
+  },
+  "routing_strategy": "hash_based",
+  "sticky_sessions": true,
+  "session_key": "user_id",
+  "experiment_name": "career_path_navigator_llm_provider",
+  "start_date": "2024-01-01",
+  "end_date": null
+}
+
