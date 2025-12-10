@@ -1,0 +1,8 @@
+# No external dependencies required for this proof-of-concept
+# All functionality uses Python standard library only
+
+# For production, you might want:
+# - requests (for real API calls)
+# - prometheus-client (for metrics export)
+# - structlog (for better logging)
+
