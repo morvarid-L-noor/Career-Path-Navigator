@@ -1,0 +1,263 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Feature Configuration Schema",
+  "description": "Schema for LLM feature configuration files with prompt versioning and A/B testing",
+  "type": "object",
+  "required": ["feature", "version", "status", "prompts", "providers"],
+  "properties": {
+    "feature": {
+      "type": "string",
+      "description": "Feature identifier (e.g., 'career_path_navigator')"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "archived", "draft"],
+      "description": "Current status of this configuration"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string",
+          "format": "email"
+        },
+        "description": {
+          "type": "string"
+        },
+        "rollback_target": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      }
+    },
+    "prompts": {
+      "type": "object",
+      "description": "Prompt version references",
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "required": ["version", "file"],
+          "properties": {
+            "version": {
+              "type": "string",
+              "pattern": "^v\\d+\\.\\d+$"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "required": ["primary"],
+      "properties": {
+        "primary": {
+          "$ref": "#/definitions/provider_config"
+        },
+        "secondary": {
+          "$ref": "#/definitions/provider_config"
+        },
+        "failover": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "strategy": {
+              "type": "string",
+              "enum": ["circuit_breaker", "immediate", "on_error"]
+            },
+            "fallback_to": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ab_testing": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "experiments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/experiment"
+          }
+        }
+      }
+    },
+    "feature_flags": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "output_tracking": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "table": {
+              "type": "string"
+            },
+            "retention_days": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "previous_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              },
+              "deployed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "deployed_by": {
+                "type": "string",
+                "format": "email"
+              },
+              "rollback_reason": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "provider_config": {
+      "type": "object",
+      "required": ["provider_id", "model"],
+      "properties": {
+        "provider_id": {
+          "type": "string",
+          "enum": ["openai", "anthropic"]
+        },
+        "model": {
+          "type": "string"
+        },
+        "prompt_version": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "experiment": {
+      "type": "object",
+      "required": ["experiment_id", "name", "split"],
+      "properties": {
+        "experiment_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "split": {
+          "type": "object",
+          "patternProperties": {
+            "variant_[a-z]": {
+              "type": "object",
+              "required": ["name", "provider", "traffic_percentage"],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "traffic_percentage": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "prompt_version": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "routing_strategy": {
+          "type": "string",
+          "enum": ["hash_based", "random", "round_robin"]
+        },
+        "sticky_sessions": {
+          "type": "boolean"
+        },
+        "session_key": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        }
+      }
+    }
+  }
+}
+
