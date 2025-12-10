@@ -48,7 +48,9 @@
     "failover": {
       "enabled": true,
       "strategy": "circuit_breaker",
-      "fallback_to": "secondary"
+      "fallback_to": "secondary",
+      "bidirectional": true,
+      "description": "Bidirectional failover: GPT-4 (primary) and Claude (secondary) are each other's failover. If primary fails, use secondary. If secondary fails, use primary."
     }
   },
   "ab_testing": {

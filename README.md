@@ -1,148 +1,176 @@
-# Career Path Navigator - System Design
+# Career Path Navigator - LLMOps Assessment
 
-## What This Is
+## Deliverables
 
-This repository contains the design for how Thrive's Career Path Navigator feature works behind the scenes. The system:
-- Tests two different AI services (GPT-4 and Claude) to see which works better
-- Handles 1,000 user requests per day initially, growing to 10,000 per day
-- Responds to most requests in under 3 seconds
-- Stays within a $5,000 monthly budget
+### Part 1: System Architecture
+- **`architecture_design.md`**: System architecture with diagram (diagram.pmg)
+- Architecture supports 1,000-10,000 requests/day, <3s latency, $5,000/month budget
 
-## Files
+### Part 2: Prompt Versioning System
+- **`config/features/career_path_navigator.json`**: Feature configuration with prompt versioning
+- **`config/prompt_versioning_strategy.md`**: Versioning strategy and rollback process (300-500 words)
+- **`config/schema/feature_config_schema.json`**: JSON schema for validation
+- **`prompts/career_path_navigator/`**: Versioned prompt files
 
-### Architecture Documents
-- **`architecture_design.md`**: Comprehensive architecture documentation with Mermaid diagram
-- **`architecture_diagram_ascii.txt`**: ASCII art diagram for easy viewing in any text editor
+**Key Features:**
+- Independent prompt versioning (v2.1, v1.5)
+- Feature versioning (semantic: 1.2.3)
+- A/B testing support
+- Quick rollback without code deployment
 
-### Configuration Files
-- **`config/provider_settings.json`**: LLM provider configuration (API keys, models, costs)
-- **`config/ab_test_config.json`**: A/B testing configuration and routing strategy
-- **`config/rate_limits.json`**: Rate limiting and budget constraints
-
-### Prompt Versioning System (Part 2)
-- **`config/features/career_path_navigator.json`**: Main feature configuration with prompt versioning
-- **`config/prompt_versioning_strategy.md`**: Detailed explanation of versioning strategy and rollback process
-- **`config/schema/feature_config_schema.json`**: JSON schema for configuration validation
-- **`PROMPT_VERSIONING_SUMMARY.md`**: Quick reference guide for the prompt versioning system
-
-### Monitoring Implementation (Part 3)
-- **`llm_monitoring/`**: Complete Python proof-of-concept for monitoring
-  - `monitor.py`: Main monitoring wrapper with telemetry logging
+### Part 3: Monitoring Implementation
+- **`llm_monitoring/`**: Python proof-of-concept for monitoring
+  - `monitor.py`: Main monitoring wrapper with token/cost limiters
   - `providers.py`: Mock LLM providers (OpenAI, Anthropic)
-  - `circuit_breaker.py`: Failover logic implementation
-  - `metrics.py`: Metrics collection and aggregation
-  - `demo.py`: Working demonstration script
-- **`MONITORING_IMPLEMENTATION_SUMMARY.md`**: Summary of monitoring features
+  - `circuit_breaker.py`: Failover logic
+  - `metrics.py`: Metrics collection
+  - `cache.py`: Response caching
+  - `demo.py`: Working demonstration
 
-## How It Works - Main Parts
+**Key Features:**
+- Token limiter (500 tokens average)
+- Cost limiter ($5,000/month budget)
+- Bidirectional failover (GPT-4 ↔ Claude)
+- Structured telemetry logging (JSONL)
+- Metrics tracking (latency, tokens, costs, errors)
 
-1. **Main Application (Rails)**: The part users interact with - receives requests and shows responses
-2. **AI Gateway Service**: The smart middleman that manages all communication with AI services
-3. **AI Provider Manager**: Handles connections to different AI services (GPT-4 and Claude)
-4. **Settings Management**: Simple text files that control how the system behaves
-5. **Monitoring System**: Tracks performance, spending, and errors - sends alerts when needed
-6. **Backup System**: Automatically switches to a backup AI if the primary one fails
+### Part 4: Technical Recommendations
+- **`TECHNICAL_RECOMMENDATIONS.md`**: Technical memo covering:
+  - Cost Optimization Strategy
+  - A/B Testing Approach
+  - Failure Scenarios & Mitigations (3 scenarios)
+  - Quality Evaluation
 
-### Why We Built It This Way
+## How to Run
 
-- **Separate Gateway**: Keeps the main app independent from AI services - easier to update and scale
-- **Provider Abstraction**: Easy to add new AI services in the future without rewriting code
-- **Simple Text File Settings**: Anyone can read and update - stored in version control
-- **Automatic Backup**: If one AI fails, we automatically use another - prevents total outages
-- **Smart Memory**: Remembers answers to save money and speed up responses
-- **Comprehensive Monitoring**: Always know what's happening - helps fix problems quickly
+### Prerequisites
+- Python 3.8+
+- No external dependencies required (uses standard library only)
 
-## Viewing the Architecture
+### Running the Monitoring Demo
 
-### Option 1: Mermaid Diagram (Recommended)
-Open `architecture_design.md` in any Markdown viewer that supports Mermaid (GitHub, VS Code with Mermaid extension, etc.)
+```bash
+# Run the monitoring demonstration
+python -m llm_monitoring.demo
 
-### Option 2: ASCII Diagram
-Open `architecture_diagram_ascii.txt` in any text editor for a visual representation
+# This will:
+# - Make several mock API calls with tracking
+# - Simulate failures to test circuit breaker
+# - Display comprehensive statistics
+# - Generate telemetry logs (llm_telemetry.jsonl)
+```
 
-### Option 3: Online Tools
-- Copy the Mermaid diagram from `architecture_design.md` and paste into [Mermaid Live Editor](https://mermaid.live)
-- Use [draw.io](https://app.diagrams.net/) or [Excalidraw](https://excalidraw.com/) to create a visual diagram based on the design
+### Using the Monitoring System
 
-## Settings Files
+```python
+from llm_monitoring.monitor import LLMMonitor
 
-All system settings are stored in simple text files in the `config/` directory:
+# Initialize monitor with optional log file
+monitor = LLMMonitor(log_file="telemetry.jsonl")
 
-- **`provider_settings.json`**: Which AI services to use, how much they cost, and backup settings
-- **`ab_test_config.json`**: How to split requests between GPT-4 and Claude for testing
-- **`rate_limits.json`**: Limits on how many requests users can make and monthly budget
+# Make a request
+response = monitor.generate(
+    user_profile="Software Engineer, 5 years, Python/Java, interested in AI/ML",
+    job_market_data="AI Engineer: $120k-180k, ML Engineer: $130k-200k",
+    provider="openai",  # or "anthropic", or None for A/B test selection
+    feature_version="1.2.3",
+    prompt_version="v2.1",
+    experiment_id="provider_comparison",
+    variant_id="variant_a"
+)
 
-These files:
-- Are stored in Git (so we can track all changes)
-- Can be stored in cloud storage (like S3) or GitHub
-- Are read by both the main app and the gateway service
-- Can be updated without restarting the system
+# Get statistics
+stats = monitor.get_stats()
+monitor.print_stats()
+```
 
-## How a Request Works
+## Assumptions Made
 
-1. User asks for a career path recommendation
-2. Main app reads current settings from text files
-3. Main app sends request to the AI gateway
-4. Gateway checks its memory for similar questions (saves time and money!)
-5. Gateway checks if user has exceeded their request limit
-6. Gateway decides which AI to use (GPT-4 or Claude) based on A/B test
-7. Gateway sends question to the chosen AI service
-8. Gateway receives answer, saves it to memory, and formats it
-9. Everything is logged so we can monitor performance
-10. Formatted answer is sent back to the user
+1. **Configuration Storage**: JSON files stored in version control (Git) and accessible to Rails app. In production, these could be in S3, GitHub, or a config service.
 
-## What Happens When Things Go Wrong
+2. **Caching**: In-memory cache for POC. Production would use Redis with proper TTL and eviction policies.
 
-The system has multiple backup plans:
+3. **Monitoring**: File-based telemetry logging (JSONL). Production would integrate with ELK, CloudWatch, or similar.
 
-1. **Try the chosen AI**: Based on A/B test, try GPT-4 or Claude
-2. **Switch to backup**: If the first AI is down, automatically use the other one
-3. **Use saved answer**: If both AIs are down, use a previously saved answer (even if it's a bit old)
-4. **Partial response**: As a last resort, return whatever information we have
+4. **Provider APIs**: Mock providers simulate real API behavior. Production would use OpenAI and Anthropic SDKs.
 
-The backup system automatically kicks in if an AI fails 5 times in a row or has errors on 50% of requests. It tries again after 30 seconds to see if the AI is working again.
+5. **Token Estimation**: Simple character-based estimation (1 token ≈ 4 chars). Production would use tiktoken or similar libraries.
 
-## Budget Management
+6. **Cost Calculation**: Based on published pricing. Actual costs may vary with usage tiers or discounts.
 
-- Tracks spending in real-time (counts every word sent to and received from AI)
-- Sends alerts when we hit 80%, 90%, 95%, and 100% of daily or monthly budget
-- Automatically slows down requests if we're getting close to the limit
-- Saves money by:
-  - Remembering answers to common questions
-  - Grouping requests when possible
-  - Writing questions more efficiently
-  - Choosing the AI that gives best value
+7. **A/B Testing**: Simple hash-based routing. Production would use a dedicated experimentation platform.
 
-## Growing the System
+8. **Failover**: Bidirectional failover between GPT-4 and Claude. No tertiary fallback considered.
 
-**Starting Small (1,000 requests per day)**:
-- One gateway server is enough
-- Direct connections to AI services
-- Simple memory-based caching
+9. **Budget Tracking**: In-memory monthly tracking. Production would use persistent storage with proper date handling.
 
-**Scaling Up (10,000 requests per day)**:
-- Add more gateway servers and spread the load
-- Use shared memory so all servers can access cached answers
-- Reuse connections to AI services (more efficient)
-- Process multiple requests at the same time
-- Queue requests during busy periods
+10. **Quality Checks**: Basic validation logic included. Production would have more sophisticated quality scoring.
 
-## What We Need to Build Next
+## What I'd Do Differently With More Time
 
-1. **Build the Gateway Service**: Create the Python service that manages all AI requests
-2. **Connect to AI Services**: Build the adapters that talk to GPT-4 and Claude
-3. **Set Up Settings Management**: Create the system that reads and updates configuration files
-4. **Deploy Monitoring Tools**: Set up dashboards and alerts so we can see what's happening
-5. **Build the Memory System**: Implement caching so we can reuse answers
-6. **Automate Settings Updates**: Set up automatic deployment of configuration changes
-7. **Test Under Load**: Simulate heavy traffic to make sure everything works at scale
-8. **Create Budget Dashboard**: Build a visual dashboard showing spending in real-time
+1. **Production-Ready Gateway**: Build a complete FastAPI service with proper error handling, retries, rate limiting, and health checks.
 
-## Questions or Feedback
+2. **Advanced Caching**: Implement semantic similarity caching using embeddings (e.g., OpenAI embeddings) to cache similar but not identical queries.
 
-This is a foundational design that can be iterated upon based on:
-- Specific infrastructure preferences
-- Existing tooling and services
-- Team expertise and preferences
-- Budget and timeline constraints
+3. **Comprehensive Testing**: Add unit tests, integration tests, and load tests to validate behavior under various conditions.
 
+4. **Observability Integration**: Integrate with Prometheus for metrics, OpenTelemetry for distributed tracing, and proper log aggregation.
+
+5. **Configuration Service**: Build a proper configuration service with validation, versioning, and rollback APIs instead of file-based approach.
+
+6. **Quality Scoring**: Implement more sophisticated quality evaluation using LLM-as-judge or fine-tuned models for relevance scoring.
+
+7. **Cost Forecasting**: Add predictive cost modeling based on historical patterns to proactively manage budget.
+
+8. **A/B Testing Platform**: Build a proper experimentation platform with statistical analysis, early stopping, and multi-variant support.
+
+9. **Provider Abstraction**: Create a more robust provider abstraction layer to easily add new providers (e.g., Gemini, Cohere).
+
+10. **Documentation**: Add API documentation, deployment guides, runbooks, and troubleshooting guides.
+
+11. **Security**: Add request sanitization, PII detection/redaction, and proper secret management.
+
+12. **Performance**: Optimize for sub-second latency with connection pooling, async requests, and response streaming.
+
+## File Structure
+
+```
+.
+├── README.md                              # This file
+├── architecture_design.md                 # Part 1: System architecture
+├── TECHNICAL_RECOMMENDATIONS.md          # Part 4: Technical recommendations
+├── config/
+│   ├── features/
+│   │   ├── career_path_navigator.json     # Main feature configuration
+│   │   └── career_path_navigator.v1.2.2.json  # Archived version
+│   ├── schema/
+│   │   └── feature_config_schema.json   # JSON schema for validation
+│   ├── prompt_versioning_strategy.md     # Part 2: Versioning strategy
+│   ├── provider_settings.json            # Provider configuration
+│   ├── ab_test_config.json              # A/B testing configuration
+│   └── rate_limits.json                 # Rate limits and budgets
+├── prompts/
+│   └── career_path_navigator/
+│       ├── system/
+│       │   ├── v2.1.txt                 # System prompt versions
+│       │   └── v2.0.txt
+│       └── user/
+│           ├── v1.5.txt                 # User template versions
+│           └── v1.4.txt
+└── llm_monitoring/                      # Part 3: Monitoring POC
+    ├── monitor.py                       # Main monitoring wrapper
+    ├── providers.py                     # Mock LLM providers
+    ├── circuit_breaker.py               # Failover logic
+    ├── metrics.py                       # Metrics collection
+    ├── cache.py                         # Response caching
+    ├── demo.py                          # Demonstration script
+    ├── requirements.txt                 # Dependencies (none needed)
+    └── README.md                        # Monitoring system docs
+```
+
+## Configuration Files
+
+- `config/provider_settings.json`: LLM provider settings (API keys, models, costs)
+- `config/ab_test_config.json`: A/B testing configuration and routing strategy
+- `config/rate_limits.json`: Rate limits and budget constraints
+- `config/features/career_path_navigator.json`: Main feature configuration with prompt versioning

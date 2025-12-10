@@ -1,9 +1,12 @@
 {
+  "token_limiter": {
+    "max_tokens_per_request": 500,
+    "enforcement": "average",
+    "description": "Prompt + response must average 500 tokens or less per request"
+  },
   "global": {
     "requests_per_minute": 100,
-    "requests_per_hour": 6000,
-    "tokens_per_day": 5000000,
-    "tokens_per_month": 150000000
+    "requests_per_hour": 6000
   },
   "per_user": {
     "requests_per_hour": 20,
@@ -16,7 +19,8 @@
   "budget": {
     "monthly_limit_usd": 5000,
     "daily_limit_usd": 166.67,
-    "alert_thresholds": [0.8, 0.9, 0.95, 1.0]
+    "alert_thresholds": [0.8, 0.9, 0.95, 1.0],
+    "description": "Monthly budget limit for all LLM API calls"
   }
 }
 
