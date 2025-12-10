@@ -1,0 +1,74 @@
+{
+  "feature": "career_path_navigator",
+  "version": "1.2.2",
+  "status": "archived",
+  "metadata": {
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-18T09:45:00Z",
+    "created_by": "ai-team@thrive.com",
+    "description": "Previous version - archived for rollback capability"
+  },
+  "prompts": {
+    "system": {
+      "version": "v2.0",
+      "file": "prompts/career_path_navigator/system/v2.0.txt"
+    },
+    "user_template": {
+      "version": "v1.4",
+      "file": "prompts/career_path_navigator/user/v1.4.txt"
+    }
+  },
+  "providers": {
+    "primary": {
+      "provider_id": "openai",
+      "model": "gpt-4",
+      "prompt_version": {
+        "system": "v2.0",
+        "user_template": "v1.4"
+      },
+      "parameters": {
+        "temperature": 0.7,
+        "max_tokens": 500
+      }
+    },
+    "secondary": {
+      "provider_id": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "prompt_version": {
+        "system": "v2.0",
+        "user_template": "v1.4"
+      },
+      "parameters": {
+        "temperature": 0.7,
+        "max_tokens": 500
+      }
+    }
+  },
+  "ab_testing": {
+    "enabled": true,
+    "experiments": [
+      {
+        "experiment_id": "provider_comparison",
+        "name": "GPT-4 vs Claude Provider Comparison",
+        "enabled": true,
+        "split": {
+          "variant_a": {
+            "name": "GPT-4 Primary",
+            "provider": "primary",
+            "traffic_percentage": 50
+          },
+          "variant_b": {
+            "name": "Claude Secondary",
+            "provider": "secondary",
+            "traffic_percentage": 50
+          }
+        },
+        "routing_strategy": "hash_based",
+        "sticky_sessions": true,
+        "start_date": "2024-01-15T00:00:00Z",
+        "end_date": null
+      }
+    ]
+  }
+}
+

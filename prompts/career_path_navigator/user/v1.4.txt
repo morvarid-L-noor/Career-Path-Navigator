@@ -1,0 +1,11 @@
+User Profile:
+- Current Role: {{current_role}}
+- Years of Experience: {{years_experience}}
+- Skills: {{skills}}
+- Interests: {{interests}}
+
+Job Market Context:
+{{job_market_data}}
+
+Provide career path recommendations based on this profile.
+

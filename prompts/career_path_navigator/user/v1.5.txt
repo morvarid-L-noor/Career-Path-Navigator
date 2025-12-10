@@ -1,0 +1,18 @@
+User Profile:
+- Current Role: {{current_role}}
+- Years of Experience: {{years_experience}}
+- Skills: {{skills}}
+- Interests: {{interests}}
+- Education: {{education}}
+- Career Goals: {{career_goals}}
+
+Job Market Context:
+{{job_market_data}}
+
+Based on this information, provide a personalized career path recommendation with:
+1. Recommended next roles (2-3 options)
+2. Required skills to develop
+3. Expected salary ranges
+4. Timeline to transition
+5. Specific action steps
+
