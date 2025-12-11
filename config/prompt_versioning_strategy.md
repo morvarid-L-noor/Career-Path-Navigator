@@ -36,6 +36,13 @@ Feature configurations use semantic versioning (MAJOR.MINOR.PATCH):
 - **PATCH**: Bug fixes, small prompt tweaks, or configuration adjustments
 
 Example: `1.2.3` indicates version 1, with 2 minor updates, and 3 patch updates.
+  1.0.0  → Initial release
+  1.1.0  → Added A/B testing (new feature)
+  1.2.0  → Added prompt versioning (new feature)
+  1.2.1  → Fixed bug in prompt loading
+  1.2.2  → Fixed typo in prompt template
+  1.2.3  → Current version (small config adjustment)
+
 
 ### Prompt Versioning (Independent Versioning)
 

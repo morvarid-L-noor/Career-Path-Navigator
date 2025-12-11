@@ -17,7 +17,7 @@ config/
 │   └── career_path_navigator.v1.2.2.json   # Archived versions for rollback
 ├── schema/
 │   └── feature_config_schema.json          # JSON schema for validation
-└── PROMPT_VERSIONING_README.md             # This file
+└── PROMPT_VERSIONING_README.md             
 
 prompts/
 └── career_path_navigator/

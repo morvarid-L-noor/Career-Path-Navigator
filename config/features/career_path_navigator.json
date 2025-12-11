@@ -139,7 +139,7 @@
     "storage": {
       "type": "database",
       "table": "llm_outputs",
-      "retention_days": 90
+      "retention_days": 90 
     }
   },
   "rollback": {
