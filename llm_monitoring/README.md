@@ -31,11 +31,12 @@ from llm_monitoring import LLMMonitor
 # Initialize monitor with optional log file
 monitor = LLMMonitor(log_file="telemetry.jsonl")
 
-# Make a request with full tracking
+# Make a request with two inputs (matching architecture)
 response = monitor.generate(
-    prompt="What career paths are available?",
+    user_profile="Software Engineer, 5 years, Python/Java, interested in AI/ML",
+    job_market_data="AI Engineer: $120k-180k, ML Engineer: $130k-200k",
     system_prompt="You are a career advisor.",
-    provider="openai",  # or "anthropic", or None for auto-select
+    provider="openai",  # or "anthropic", or None for A/B test selection
     feature_version="1.2.3",
     prompt_version="v2.1",
     experiment_id="provider_comparison",
@@ -56,17 +57,34 @@ monitor.print_stats()  # Pretty-printed version
    - `MockAnthropicProvider`: Simulates Claude-3.5-Sonnet
 
 2. **`monitor.py`**: Main monitoring wrapper
-   - `LLMMonitor`: Handles all API calls with monitoring
-   - Provider selection and failover
+   - `LLMMonitor`: Handles all API calls following architecture flow
+   - Implements: Token Limiter → Cost Limiter → A/B Router → Cache → Provider
+   - Bidirectional failover
    - Telemetry logging
    - Metrics collection
 
-3. **`circuit_breaker.py`**: Failover logic
+3. **`token_limiter.py`**: Token limit enforcement
+   - `TokenLimiter`: Enforces 500 tokens average (prompt + response)
+   - Validates requests before sending
+   - Tracks running average
+
+4. **`cost_limiter.py`**: Budget enforcement
+   - `CostLimiter`: Enforces $5000/month budget
+   - Tracks monthly and daily spending
+   - Sends alerts at thresholds (80%, 90%, 95%, 100%)
+
+5. **`cache.py`**: Response caching
+   - `ResponseCache`: In-memory cache (Redis in production)
+   - Content-based hashing for similar queries
+   - TTL-based expiration
+
+6. **`circuit_breaker.py`**: Failover logic
    - `CircuitBreaker`: Implements circuit breaker pattern
    - States: CLOSED, OPEN, HALF_OPEN
    - Automatic recovery
+   - Bidirectional failover (GPT-4 ↔ Claude)
 
-4. **`metrics.py`**: Metrics collection
+7. **`metrics.py`**: Metrics collection
    - `MetricsCollector`: Aggregates request metrics
    - Calculates percentiles (p50, p95, p99)
    - Tracks costs, tokens, error rates
@@ -133,9 +151,13 @@ If successful, it closes again. If it fails, it reopens.
 
 ## Failover Strategy
 
+The system implements **bidirectional failover**:
+
 1. Try preferred provider (if specified)
-2. If circuit breaker is open, try failover provider
+2. If circuit breaker is open, try the other provider (bidirectional: GPT-4 ↔ Claude)
 3. If all providers are down, raise exception
+
+**Bidirectional Failover**: GPT-4 and Claude are each other's failover. If GPT-4 fails, the system automatically switches to Claude. If Claude fails, it automatically switches to GPT-4.
 
 ## Example Output
 
