@@ -13,12 +13,14 @@ Rails consumes the configuration system through a lightweight service layer that
 2. **Hot Reloading**: The service watches for configuration file changes via a file watcher or webhook. When changes are detected, it validates the new configuration and reloads it without requiring a full application restart.
 
 3. **Prompt Resolution**: When a request comes in, Rails calls the configuration service to:
+
    - Determine which feature version to use (defaults to "active" status)
    - Resolve prompt file paths based on the versioned prompt references
    - Load the actual prompt templates from the file system
    - Apply any A/B test routing logic to select the appropriate variant
 
 4. **Request Processing**: Rails constructs the full prompt by:
+
    - Loading the system prompt from the referenced file
    - Loading the user template from the referenced file
    - Filling in template variables with user data
@@ -31,22 +33,24 @@ Rails consumes the configuration system through a lightweight service layer that
 ### Feature Versioning (Semantic Versioning)
 
 Feature configurations use semantic versioning (MAJOR.MINOR.PATCH):
+
 - **MAJOR**: Breaking changes that require code updates or major prompt rewrites
 - **MINOR**: New features, new A/B tests, or significant prompt improvements
 - **PATCH**: Bug fixes, small prompt tweaks, or configuration adjustments
 
 Example: `1.2.3` indicates version 1, with 2 minor updates, and 3 patch updates.
-  1.0.0  → Initial release
-  1.1.0  → Added A/B testing (new feature)
-  1.2.0  → Added prompt versioning (new feature)
-  1.2.1  → Fixed bug in prompt loading
-  1.2.2  → Fixed typo in prompt template
-  1.2.3  → Current version (small config adjustment)
 
+- 1.0.0 → Initial release
+- 1.1.0 → Added A/B testing (new feature)
+- 1.2.0 → Added prompt versioning (new feature)
+- 1.2.1 → Fixed bug in prompt loading
+- 1.2.2 → Fixed typo in prompt template
+- 1.2.3 → Current version (small config adjustment)
 
 ### Prompt Versioning (Independent Versioning)
 
 Prompts are versioned independently using a simpler scheme (vMAJOR.MINOR):
+
 - Each prompt file has its own version (e.g., `system/v2.1.txt`, `user/v1.5.txt`)
 - Prompts can be updated without changing the feature version
 - Multiple prompt versions can coexist and be referenced by different feature versions
@@ -109,4 +113,3 @@ The entire process can be automated via a simple API endpoint or script that tak
 - **Quick Rollbacks**: Revert to previous versions in minutes, not hours
 - **Full Traceability**: Every output is tagged with version metadata for analysis
 - **Safe Experimentation**: Test new prompts on a subset of traffic before full rollout
-

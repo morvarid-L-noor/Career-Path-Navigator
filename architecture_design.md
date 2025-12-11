@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the architecture for Thrive's Career Path Navigator LLM-powered feature.
+This document describes the architecture for the Career Path Navigator LLM-powered feature.
 
 **Requirements:**
 
@@ -21,10 +21,20 @@ This document describes the architecture for Thrive's Career Path Navigator LLM-
 
 The diagram shows the complete system architecture including:
 
+**Current Implementation:**
+
 - Rails application layer with configuration loader
 - LLM Gateway Service (Python FastAPI) with routing, caching, and rate limiting
 - External LLM providers (OpenAI GPT-4 and Anthropic Claude-3.5-Sonnet)
-- Observability layer (metrics, logs, traces, alerts)
+- Data sources (LinkedIn/Indeed job market data via Databricks pipeline)
+- Storage for telemetry, metrics, A/B test results (MongoDB/S3)
+
+**Future Recommendations (Blue Outline):**
+
+- AWS Gateway (load balancer, SSL termination, rate limiting)
+- Redis Cache (response caching to reduce latency and costs)
+- Analyze Service (A/B test analysis, cost analysis, latency analysis)
+- Monitoring Service (cost alerts, token limit alerts, logs & audits, user feedback)
 
 ## Request Flow
 
@@ -96,6 +106,68 @@ The diagram shows the complete system architecture including:
 - Gateway reloads configs without restart
 - Validation via JSON schema before activation
 
+
+## Storage Strategy
+
+**Current Implementation:**
+
+- Telemetry: JSONL logs for each request (cost, model, latency)
+- Metrics: In-memory storage in POC (production: MongoDB/PostgreSQL)
+- A/B Test Results: Stored in MongoDB for analysis
+- User Feedback: Stored for quality evaluation
+
+**Storage Options:**
+
+- **MongoDB**: Recommended for structured data (metrics, outputs, A/B test results, user feedback)
+  - JSON-based storage
+  - Embedding enabled for semantic search
+  - Knowledge-based queries
+- **S3**: Alternative for telemetry logs and archival data
+  - Cost-effective for large volumes
+  - Good for long-term retention
+
+## Future Enhancements (Not Currently Implemented)
+
+### AWS Gateway (Load Balancer & SSL)
+
+- **Purpose**: Entry point for client requests
+- **Features**: Load balancing, SSL termination, API rate limiting, routing
+- **Benefit**: Offloads infrastructure concerns from Rails application
+
+### Redis Cache
+
+- **Purpose**: Response caching to reduce latency and costs
+- **Strategy**: Cache common queries by category (sector, degree, profile type)
+- **Impact**: 30-50% cache hit rate can reduce costs significantly
+
+### Analyze Service
+
+- **Purpose**: Automated analysis of system performance
+- **Functions**:
+  - A/B test statistical analysis
+  - Cost analysis and optimization recommendations
+  - Latency analysis and bottleneck identification
+- **Input**: Reads from Storage (MongoDB/S3)
+- **Output**: Analysis reports and recommendations
+
+### Monitoring Service
+
+- **Purpose**: Operational oversight and alerting
+- **Functions**:
+  - Cost alerts (budget thresholds)
+  - Token limit alerts
+  - Logs & audits
+  - User feedback aggregation
+- **Integration**: Reads from Storage, sends alerts to operations team
+
+### Categorization Strategy (Future)
+
+- **Job Categorization**: Group jobs by sector (tech, finance, healthcare, etc.)
+- **Profile Categorization**: Group profiles by degree, experience level, skills
+- **Cache Optimization**: Store common requests per category for faster retrieval
+- **Provider Selection**: Analyze which model (GPT-4 vs Claude) works better for specific categories
+- **Benefit**: Reduces latency and improves cost efficiency through targeted caching
+
 ## Key Design Decisions
 
 1. **Separate Gateway Service**: Decouples Rails from LLM providers, enables independent scaling
@@ -104,3 +176,4 @@ The diagram shows the complete system architecture including:
 4. **Circuit Breaker**: Automatic failover prevents total outages
 5. **Caching**: Reduces costs and improves latency for common queries
 6. **Structured Logging**: Enables analysis and debugging
+7. **Microservice Architecture**: Scalable, scope-based services for future growth

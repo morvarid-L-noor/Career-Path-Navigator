@@ -1,4 +1,4 @@
-# LLMOps Engineer Take-Home Assessment
+# LLMOps Engineer Assessment
 
 This repository contains the deliverables for the Career Path Navigator LLM infrastructure assessment.
 
@@ -26,7 +26,7 @@ This repository contains the deliverables for the Career Path Navigator LLM infr
 
 ### Part 4: Technical Recommendations
 
-- **`TECHNICAL_RECOMMENDATIONS.md`**: Technical memo covering cost optimization, A/B testing, failure scenarios, and quality evaluation
+- **`MEMO.md`**: Technical memo covering answers to cost optimization, A/B testing, failure scenarios, and quality evaluation questions
 
 ## How to Run
 
@@ -37,7 +37,7 @@ This repository contains the deliverables for the Career Path Navigator LLM infr
 cd llm_monitoring
 
 # Run the demo
-python -m llm_monitoring.demo
+python demo.py
 
 # This will:
 # - Make mock API calls with monitoring
@@ -48,20 +48,51 @@ python -m llm_monitoring.demo
 
 ## Assumptions Made
 
-1. **Infrastructure**: Assumed cloud-based deployment (AWS/GCP) with managed services for Redis, monitoring
+1. **Infrastructure**: Assumed cloud-based deployment (AWS) with managed services for Redis, monitoring
 2. **Rails Integration**: `PromptConfigService` is a conceptual design - not implemented in this assessment
-3. **Metrics Storage**: POC uses in-memory storage; production would use MongoDB/PostgreSQL
+3. **Metrics Storage**: POC uses in-memory storage; production would use MongoDB/PostgreSQL/S3
 4. **Caching**: Redis-based caching assumed but not implemented in POC
 5. **Monitoring**: Telemetry logs to JSONL files; production would use ELK/CloudWatch
 6. **A/B Testing**: Analysis and decision-making left to data team (not implemented)
 
 ## What I'd Do Differently With More Time
 
-1. **Real API Integration**: Replace mock providers with actual OpenAI/Anthropic SDKs
-2. **Database Persistence**: Add MongoDB/PostgreSQL for metrics storage and analysis
-3. **Prometheus Integration**: Export metrics to Prometheus for Grafana dashboards
-4. **Rate Limiting**: Implement token-based rate limiting in the gateway
-5. **Caching Implementation**: Build Redis-based response caching
-6. **A/B Test Analysis**: Add statistical analysis tools for experiment evaluation
-7. **Alerting System**: Integrate with PagerDuty/Slack for budget and error alerts
-8. **Load Testing**: Add load testing scripts to validate 10k requests/day capacity
+### Infrastructure Enhancements
+
+1. **AWS Gateway Integration**: Implement load balancer, SSL termination, and API rate limiting at the gateway level
+2. **Redis Cache Implementation**: Build Redis-based response caching with category-based cache keys (sector, degree, profile type)
+3. **Database Persistence**: Add MongoDB/PostgreSQL for metrics storage and analysis (currently in-memory in POC)
+4. **Storage Strategy**: Implement storage (MongoDB for structured data, S3 for telemetry logs and archival)
+
+### Service Architecture
+
+5. **Analyze Service**: Build dedicated service for:
+   - A/B test statistical analysis (determine winners, calculate significance)
+   - Cost analysis and optimization recommendations
+   - Latency analysis and bottleneck identification
+6. **Monitoring Service**: Create separate service for:
+   - Cost alerts (budget thresholds: 80%, 90%, 95%, 100%)
+   - Token limit alerts
+   - Logs & audits aggregation
+   - User feedback collection and analysis
+
+### Optimization Features
+
+7. **Categorization System**:
+   - Categorize jobs by sector (tech, finance, healthcare, etc.)
+   - Categorize user profiles by degree, experience level, skills
+   - Store common requests per category for faster retrieval
+   - Analyze which model (GPT-4 vs Claude) performs better for specific categories
+8. **Smart Caching**:
+   - Cache similar queries using fuzzy matching
+   - Implement cache warming for common category queries
+   - Cache partitioning by user segment for better performance
+
+### Integration & Tooling
+
+9. **Real API Integration**: Replace mock providers with actual OpenAI/Anthropic SDKs
+10. **Prometheus Integration**: Export metrics to Prometheus for Grafana dashboards
+11. **Rate Limiting**: Implement token-based rate limiting in the gateway
+12. **Alerting System**: Integrate with PagerDuty/Slack for budget and error alerts
+13. **Load Testing**: Add load testing scripts to validate 10k requests/day capacity
+14. **A/B Test Analysis Tools**: Add statistical analysis tools for experiment evaluation with automated winner determination
