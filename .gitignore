@@ -1,3 +1,2 @@
-
-"git_instructions.txt"
-
+llm_monitoring/__pycache__/
+llm_monitoring/**/*.pyc
